@@ -17,7 +17,7 @@ module "saas_infra" {
   secure_main_private = false
 
   private_allow_tenant_role_whitelist = [
-    "templateservicename:hasaccount"
+    "saas_notification:hasaccount"
   ]
 }
 

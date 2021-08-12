@@ -1,5 +1,5 @@
 {"steps": [
-    { "type": "echo", "data": { "text": "templateservicename Dev Security Config"}},
+    { "type": "echo", "data": { "text": "saas_notification Dev Security Config"}},
     { "type": "createTenant", "data": {
       "tenantName": "defaulttenant",
       "description": "Autoconfig tenant for development testing",
@@ -19,7 +19,7 @@
     }},
     { "type": "addInternalUserAccount", "data": {
       "tenantName": "defaulttenant",
-      "userID": "templateservicenameAutoconfigTestUser",
+      "userID": "saas_notificationAutoconfigTestUser",
       "Username": "TestUser",
       "Password": "TestUser",
       "Roles": {
@@ -28,11 +28,11 @@
     }},
     { "type": "addInternalUserAccount", "data": {
       "tenantName": "defaulttenant",
-      "userID": "templateservicenameAutoconfigAdminUser",
+      "userID": "saas_notificationAutoconfigAdminUser",
       "Username": "TestAdmin",
       "Password": "TestAdmin",
       "Roles": {
-        "defaulttenant": [ "TestingGroupRole", "templateservicenameadmin" ]
+        "defaulttenant": [ "TestingGroupRole", "saas_notificationadmin" ]
       }
     }}
 

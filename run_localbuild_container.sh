@@ -7,7 +7,7 @@ if [[ ! -f ./VERSION ]]; then
   exit 1
 fi
 DOCKER_USERNAME=metcarob
-DOCKER_IMAGENAME=templateservicename
+DOCKER_IMAGENAME=saas_notification
 
 export RJM_VERSION=$(cat ./VERSION)
 export RJM_VERSION_UNDERSCORE=$(echo ${RJM_VERSION} | tr '.' '_')

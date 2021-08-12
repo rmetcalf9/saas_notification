@@ -1,6 +1,6 @@
 FROM nginx:1.16.0-alpine
 
-#docker file for templateservicename microservice
+#docker file for saas_notification microservice
 # I have built this as a single container microservice to ease versioning
 
 MAINTAINER Robert Metcalf

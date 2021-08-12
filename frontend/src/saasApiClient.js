@@ -1,7 +1,7 @@
 // This file is for calling my backend services
 import rjmversion from './rjmversion.js'
 
-var endpointName = 'templateservicename'
+var endpointName = 'saas_notification'
 function getMainEndpointName () {
   return endpointName
 }

@@ -4,6 +4,6 @@ werkzeug==0.15.5
 pytz==2019.3
 baseapp_for_restapi_backend_with_swagger==0.5.22
 pyjwt==1.7.1
-object_store_abstraction==0.3.40
+object_store_abstraction==0.3.43
 
 requests==2.20.1

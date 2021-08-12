@@ -31,7 +31,7 @@ infoAPIPrefix = '/public/api/info'
 #ccAPIPrefix = '/public/api/cc'
 if viaKong:
   # swap public and private around
-  ## my testing showed in templateservicename it's the same way round
+  ## my testing showed in saas_notification it's the same way round
   infoAPIPrefix = '/public/api/info'
   #userPrivateAPIPrefix = '/private/api/user'
   #userPublicAPIPrefix = '/public/api/user'

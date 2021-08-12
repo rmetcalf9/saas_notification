@@ -2,7 +2,7 @@
 
 echo 'continous test for testContainer'
 echo 'e.g. sudo ./continous_test.sh wip'
-echo ' you must run localbuild container. templateservicename defaults to port 8095'
+echo ' you must run localbuild container. saas_notification defaults to port 8095'
 
 export TESTPARAM_EXPECTED_CONTAINER_VERSION=$(cat ../../VERSION)
 export TESTPARAM_ENDPOINTURL=http://localhost:8095

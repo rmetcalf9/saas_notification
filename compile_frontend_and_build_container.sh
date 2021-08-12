@@ -2,10 +2,10 @@
 
 #Not used by codefresh as I am using build container instead
 
-#working directory is always templateservicename root
+#working directory is always saas_notification root
 GITROOT=$(pwd)
 DOCKER_USERNAME=metcarob
-DOCKER_IMAGENAME=templateservicename
+DOCKER_IMAGENAME=saas_notification
 VERSIONNUM=$(cat ./VERSION)
 QUASARBUILDIMAGE="metcarob/docker-build-quasar-app:0.0.12"
 

@@ -7,7 +7,7 @@ echo "Start of ${0} - Used to test terraform locally"
 ## ./local_terraform apply -auto-approve
 
 
-WS_NAME="templateservicename"
+WS_NAME="saas_notification"
 TF_STATE_BASE="./state"
 KONG_ADMIN_URI="http://kong:8001"
 

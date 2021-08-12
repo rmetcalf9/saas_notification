@@ -96,7 +96,7 @@ export default {
       return this.$store.getters['saasUserManagementClientStore/getDebugStats']
     },
     isAdminUser () {
-      return this.$store.getters['saasUserManagementClientStore/hasRole']('templateservicenameadmin')
+      return this.$store.getters['saasUserManagementClientStore/hasRole']('saas_notificationadmin')
     },
     isLoggedIn () {
       return this.$store.getters['saasUserManagementClientStore/isLoggedIn']

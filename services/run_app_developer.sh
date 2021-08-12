@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "templateservicename"
+echo "saas_notification"
 
 SAAS_USERMANAGEMENT_CONTAINER=metcarob/saas_user_management:0.0.152
 

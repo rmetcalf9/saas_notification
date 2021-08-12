@@ -12,7 +12,7 @@
         />
 
         <q-toolbar-title>
-          <div @click="clicktoolbartitle">Challenge Swipe</div>
+          <div @click="clicktoolbartitle">saas_notification</div>
         </q-toolbar-title>
         <div v-if="serverInfoVersionMatchesCodeBaseVersion">Version {{ serverInfoVersion }}</div>
         <div v-if="!serverInfoVersionMatchesCodeBaseVersion">Version {{ serverInfoVersion }}
@@ -133,7 +133,7 @@ export default {
       return window.location.host
     },
     isAdminUser () {
-      return this.$store.getters['saasUserManagementClientStore/hasRole']('templateservicenameadmin')
+      return this.$store.getters['saasUserManagementClientStore/hasRole']('saas_notificationadmin')
     },
     serverInfoVersion () {
       var endpoints = this.$store.getters['saasUserManagementClientStore/getEndpoints']

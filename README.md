@@ -8,7 +8,7 @@ I have also extended it for with my standard Terraform setup.
 
 ## Pre-deploy setup
 
-Find and replace service name occurrences (templateservicename -> new name):
+Find and replace service name occurrences (saas_notification -> new name):
 
  - codefresh.yml
  - Dockerfile
@@ -43,10 +43,10 @@ Run commands in new repo root:
 
 ## Deploy Setup
 
-- Create secret (saas_templateservicename_objectstore_config_dynamodb_cached) in infrastructure
+- Create secret (saas_saas_notification_objectstore_config_dynamodb_cached) in infrastructure
 (Note maybe for AWS I want to create a user for this service)
 ```
-docker secret create saas_templateservicename_objectstore_config_dynamodb_cached - <<EOF
+docker secret create saas_saas_notification_objectstore_config_dynamodb_cached - <<EOF
 {
  "Type": "Caching",
  "DefaultPolicy": {
@@ -63,7 +63,7 @@ docker secret create saas_templateservicename_objectstore_config_dynamodb_cached
    "region_name": "eu-west-2",
    "endpoint_url": "None",
    "single_table_mode": "True",
-   "objectPrefix": "templateservicename"
+   "objectPrefix": "saas_notification"
  }
 }
 EOF
@@ -77,8 +77,8 @@ Change clone step in codefresh so it has either github or gitlab.
 
 If the deployment works we should be good!
 
- - https://api.metcarob.com/templateservicename/v0/public/web/frontend/#/ works and loads serverinfo
- - curl https://api.metcarob.com/templateservicename/v0/public/api/info/serverinfo works
+ - https://api.metcarob.com/saas_notification/v0/public/web/frontend/#/ works and loads serverinfo
+ - curl https://api.metcarob.com/saas_notification/v0/public/api/info/serverinfo works
 
 ## Finally
 

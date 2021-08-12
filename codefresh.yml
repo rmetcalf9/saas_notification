@@ -1,7 +1,7 @@
 version: '1.0'
 steps:
 
-  #This file describes the deployment process for templateservicename
+  #This file describes the deployment process for saas_notification
 
   main_clone:
     title: Cloning main repository...
@@ -18,12 +18,12 @@ steps:
       - export RJM_VERSION=$(cat ./VERSION)
       - export RJM_VERSION_UNDERSCORE=$(cat ./VERSION | tr '.' '_')
       - export RJM_MAJOR_VERSION=$(echo ${RJM_VERSION%%.*})
-      - export RJM_WS_NAME=$(echo "templateservicename")
+      - export RJM_WS_NAME=$(echo "saas_notification")
       - export RJM_DOCKER_SERVICE_NAME=${RJM_WS_NAME}_${RJM_VERSION_UNDERSCORE}
       - export RJM_DOCKER_SERVICE_URL=tasks.${RJM_WS_NAME}_${RJM_VERSION_UNDERSCORE}
       - export RJM_KONG_UPSTREAM_NAME=${RJM_WS_NAME}_${RJM_MAJOR_VERSION}
       - export RJM_DOCKERWSCALLER_IMAGE="metcarob/docker-ws-caller:0.7.17"
-      - export RJM_BUILDQUASARAPP_IMAGE="metcarob/docker-build-quasar-app:0.0.25"
+      - export RJM_BUILDQUASARAPP_IMAGE="metcarob/docker-build-quasar-app:0.0.27"
       - export RJM_UNITTESTAPICONTIANER_IMAGE="metcarob/python_unittest_api_container:0.0.9"
       - export RJM_DOCKER_KONG_API_URL="http://tasks.kong:8001"
       - export MEMSET_CLOUD_ROOT=/memset_cloud
@@ -114,13 +114,13 @@ steps:
           --name ${RJM_DOCKER_SERVICE_NAME}
           --network main_net
           --secret saas_jwtsecret
-          -e APIAPP_APIURL=https://api.metcarob.com/templateservicename/v${{RJM_MAJOR_VERSION}}/public/api
-          -e APIAPP_APIDOCSURL=https://api.metcarob.com/templateservicename/v${{RJM_MAJOR_VERSION}}/public/web/apidocs
-          -e APIAPP_FRONTENDURL=https://api.metcarob.com/templateservicename/v${{RJM_MAJOR_VERSION}}/public/web/frontend
+          -e APIAPP_APIURL=https://api.metcarob.com/saas_notification/v${{RJM_MAJOR_VERSION}}/public/api
+          -e APIAPP_APIDOCSURL=https://api.metcarob.com/saas_notification/v${{RJM_MAJOR_VERSION}}/public/web/apidocs
+          -e APIAPP_FRONTENDURL=https://api.metcarob.com/saas_notification/v${{RJM_MAJOR_VERSION}}/public/web/frontend
           -e APIAPP_COMMON_ACCESSCONTROLALLOWORIGIN="https://api.metcarob.com,https://challengeswipe.com,http://platform.challengeswipe.com"
           -e APIAPP_JWTSECRETFILE=/run/secrets/saas_jwtsecret
-          --secret templateservicename_objectstore_config_dynamodb_cached
-          -e APIAPP_OBJECTSTORECONFIGFILE=/run/secrets/templateservicename_objectstore_config_dynamodb_cached
+          --secret saas_notification_objectstore_config_dynamodb_cached
+          -e APIAPP_OBJECTSTORECONFIGFILE=/run/secrets/saas_notification_objectstore_config_dynamodb_cached
           metcarob/${RJM_WS_NAME}:${RJM_VERSION}
       environment:
         - SSH_KEY=${{SSH_KEY_COMMAS}}
