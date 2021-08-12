@@ -57,8 +57,6 @@ export APIAPP_APIDOCSURL=${EXTURL}:${EXTPORT}/apidocs
 export APIAPP_FRONTENDURL=${EXTURL}:${EXTPORT}/frontend
 export APIAPP_APIACCESSSECURITY=[]
 export APIAPP_PORT=8098
-##export APIAPP_OBJECTSTORECONFIG="{\"Type\":\"Memory\"}"
-export APIAPP_OBJECTSTORECONFIG="{\"Type\": \"SimpleFileStore\",\"BaseLocation\": \"./objectstoredata\"}"
 export APIAPP_COMMON_ACCESSCONTROLALLOWORIGIN="http://localhost:8080"
 
 export APIAPP_VERSION=
