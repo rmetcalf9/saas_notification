@@ -1,0 +1,202 @@
+version: '1.0'
+steps:
+
+  #This file describes the deployment process for templateservicename
+
+  main_clone:
+    title: Cloning main repository...
+    type: git-clone
+    repo: '${{CF_REPO_OWNER}}/${{CF_REPO_NAME}}'
+    revision: '${{CF_REVISION}}'
+    git: gitlab
+
+  setup_variables:
+    description: Sets variables for future steps
+    image: alpine:latest
+    working_directory: ${{main_clone}}
+    commands:
+      - export RJM_VERSION=$(cat ./VERSION)
+      - export RJM_VERSION_UNDERSCORE=$(cat ./VERSION | tr '.' '_')
+      - export RJM_MAJOR_VERSION=$(echo ${RJM_VERSION%%.*})
+      - export RJM_WS_NAME=$(echo "templateservicename")
+      - export RJM_DOCKER_SERVICE_NAME=${RJM_WS_NAME}_${RJM_VERSION_UNDERSCORE}
+      - export RJM_DOCKER_SERVICE_URL=tasks.${RJM_WS_NAME}_${RJM_VERSION_UNDERSCORE}
+      - export RJM_KONG_UPSTREAM_NAME=${RJM_WS_NAME}_${RJM_MAJOR_VERSION}
+      - export RJM_DOCKERWSCALLER_IMAGE="metcarob/docker-ws-caller:0.7.17"
+      - export RJM_BUILDQUASARAPP_IMAGE="metcarob/docker-build-quasar-app:0.0.25"
+      - export RJM_UNITTESTAPICONTIANER_IMAGE="metcarob/python_unittest_api_container:0.0.9"
+      - export RJM_DOCKER_KONG_API_URL="http://tasks.kong:8001"
+      - export MEMSET_CLOUD_ROOT=/memset_cloud
+      - cf_export RJM_VERSION=${RJM_VERSION}
+      - cf_export RJM_VERSION_UNDERSCORE=${RJM_VERSION_UNDERSCORE}
+      - cf_export RJM_MAJOR_VERSION=${RJM_MAJOR_VERSION}
+      - cf_export RJM_WS_NAME=${RJM_WS_NAME}
+      - cf_export RJM_DOCKER_SERVICE_NAME=${RJM_DOCKER_SERVICE_NAME}
+      - cf_export RJM_DOCKER_SERVICE_URL=${RJM_DOCKER_SERVICE_URL}
+      - cf_export RJM_KONG_UPSTREAM_NAME=${RJM_KONG_UPSTREAM_NAME}
+      - cf_export RJM_DOCKERWSCALLER_IMAGE=${RJM_DOCKERWSCALLER_IMAGE}
+      - cf_export RJM_BUILDQUASARAPP_IMAGE=${RJM_BUILDQUASARAPP_IMAGE}
+      - cf_export RJM_UNITTESTAPICONTIANER_IMAGE=${RJM_UNITTESTAPICONTIANER_IMAGE}
+      - cf_export RJM_DOCKER_KONG_API_URL=${RJM_DOCKER_KONG_API_URL}
+      - cf_export MEMSET_CLOUD_ROOT=${MEMSET_CLOUD_ROOT}
+
+  # These are the application unit tests
+  unit_test:
+    description: Make sure all the unit tests pass
+    image: ${{RJM_DOCKERWSCALLER_IMAGE}}
+    working_directory: ${{main_clone}}/services
+    commands:
+      - apk add --no-cache libressl-dev libxml2 libxslt libxslt-dev libxml2-dev
+      - pip3 install --no-cache-dir -r ./src/requirements.txt
+      - pip3 install --no-cache-dir -r ./testContainer/requirements.txt
+      - nosetests --rednose ./test
+
+  compile_frontend:
+    description: Compile the frontend quasar application
+    image: ${{RJM_BUILDQUASARAPP_IMAGE}}
+    working_directory: ${{main_clone}}
+    commands:
+      - build_quasar_app ./frontend pwa ${{RJM_VERSION}}
+
+  build_the_image:
+    working_directory: ${{main_clone}}
+    type: build
+    image_name: metcarob/${{RJM_WS_NAME}}
+    tag: ${{RJM_VERSION}}
+
+  build_the_test_image:
+    working_directory: ${{main_clone}}/services/testContainer
+    type: build
+    image_name: metcarob/${{RJM_WS_NAME}}test
+    tag: develop
+    dockerfile: ./Dockerfile
+
+  free_disk_space:
+    description: Free up disk space
+    image: alpine:latest
+    working_directory: ${{main_clone}}
+    commands:
+      - rm -rf ./webapp/node_modules
+      - rm -rf ./webapp/dist
+
+  container_level_tests:
+    type: composition
+    title: Container level tests
+    composition:
+      version: '2'
+      services:
+        container_under_test:
+          image: ${{build_the_image}}
+          environment:
+            - APIAPP_JWTSECRET="someDummy3245SecretForTesting"
+            - APIAPP_APIURL=http://container_under_test:80/api
+            - APIAPP_APIDOCSURL=http://container_under_test:80/apidocs
+            - APIAPP_FRONTENDURL=http://container_under_test:80/frontend
+            - APIAPP_DEFAULTMASTERTENANTJWTCOLLECTIONALLOWEDORIGINFIELD="http://localhost"
+            - APIAPP_COMMON_ACCESSCONTROLALLOWORIGIN="http://localhost"
+            - APIAPP_OBJECTSTORECONFIG="{\"Type\":\"Memory\"}"
+    composition_candidates:
+      saas_user_management_systemtest:
+        image: ${{build_the_test_image}}
+        command: /run_tests_with_wait.sh
+        environment:
+          - TESTPARAM_EXPECTED_CONTAINER_VERSION=${{RJM_VERSION}}
+          - TESTPARAM_ENDPOINTURL="http://container_under_test"
+          - TESTPARAM_THROUGHKONG="False"
+
+  #Deploy new container to my website swarm
+  deploy_to_metcarob_swarm:
+      image: codefresh/remote-docker
+      working_directory: ${{main_clone}}
+      commands:
+        - rdocker ${{RDOCKER_HOST}} docker login -u ${{RJM_DOCKERHUB_USER}} -p ${{RJM_DOCKERHUB_PASS}} \&\& docker service create
+          --with-registry-auth
+          --name ${RJM_DOCKER_SERVICE_NAME}
+          --network main_net
+          --secret saas_jwtsecret
+          -e APIAPP_APIURL=https://api.metcarob.com/templateservicename/v${{RJM_MAJOR_VERSION}}/public/api
+          -e APIAPP_APIDOCSURL=https://api.metcarob.com/templateservicename/v${{RJM_MAJOR_VERSION}}/public/web/apidocs
+          -e APIAPP_FRONTENDURL=https://api.metcarob.com/templateservicename/v${{RJM_MAJOR_VERSION}}/public/web/frontend
+          -e APIAPP_COMMON_ACCESSCONTROLALLOWORIGIN="https://api.metcarob.com,https://challengeswipe.com,http://platform.challengeswipe.com"
+          -e APIAPP_JWTSECRETFILE=/run/secrets/saas_jwtsecret
+          --secret templateservicename_objectstore_config_dynamodb_cached
+          -e APIAPP_OBJECTSTORECONFIGFILE=/run/secrets/templateservicename_objectstore_config_dynamodb_cached
+          metcarob/${RJM_WS_NAME}:${RJM_VERSION}
+      environment:
+        - SSH_KEY=${{SSH_KEY_COMMAS}}
+        - SSH_PORT=${{SSH_PORT}}
+        - SPLIT_CHAR=${{SPLIT_CHAR}}
+
+  run_terraform_setuptest:
+    title: "Run terraform to setup test endpoints on memset..."
+    description: Compile the frontend quasar application
+    image: ${{RJM_DOCKERWSCALLER_IMAGE}}
+    working_directory: ${{main_clone}}
+    environment:
+      - SSH_KEY=${{SSH_KEY_COMMAS}}
+      - SSH_PORT=${{SSH_PORT}}
+      - SPLIT_CHAR=${{SPLIT_CHAR}}
+    commands:
+      - transferDirectory ${{RDOCKER_HOST}} ./terraform/ ${{MEMSET_CLOUD_ROOT}}/data_to_backup/terraform/executions/${{RJM_WS_NAME}}
+      - ssh -p ${{SSH_PORT}} -i ${HOME}/.ssh/id_rdocker -o StrictHostKeyChecking=no ${{RDOCKER_HOST}} ${{MEMSET_CLOUD_ROOT}}/scripts/update_terraform_deployment.sh  setup_test ${{MEMSET_CLOUD_ROOT}} ${{RJM_WS_NAME}} ${{RJM_VERSION}}
+      - ssh -p ${{SSH_PORT}} -i ${HOME}/.ssh/id_rdocker -o StrictHostKeyChecking=no ${{RDOCKER_HOST}} ${{MEMSET_CLOUD_ROOT}}/scripts/execute_terraform.sh ${{MEMSET_CLOUD_ROOT}} ${{RJM_WS_NAME}}
+
+  run_container_tests_against_test_endpoint:
+    image: ${{build_the_test_image}}
+    working_directory: ${{main_clone}}/server
+    commands:
+      - nosetests --rednose /test
+    environment:
+      - TESTPARAM_EXPECTED_CONTAINER_VERSION=${{RJM_VERSION}}
+      - TESTPARAM_ENDPOINTURL=https://api.metcarob.com/${{RJM_WS_NAME}}/test/v${{RJM_MAJOR_VERSION}}
+      - TESTPARAM_THROUGHKONG="True"
+    retry:
+      maxAttempts: 5
+      delay: 40
+      exponentialFactor: 1
+
+  # rdockerinit directory required because it sets up .ssh/id_rdocker
+  run_terraform_deploy:
+    title: "Run terraform to deploy on memset..."
+    description: Compile the frontend quasar application
+    image: ${{RJM_DOCKERWSCALLER_IMAGE}}
+    working_directory: ${{main_clone}}
+    environment:
+      - SSH_KEY=${{SSH_KEY_COMMAS}}
+      - SSH_PORT=${{SSH_PORT}}
+      - SPLIT_CHAR=${{SPLIT_CHAR}}
+    commands:
+      - rdockerinit
+      - ssh -p ${{SSH_PORT}} -i ${HOME}/.ssh/id_rdocker -o StrictHostKeyChecking=no ${{RDOCKER_HOST}} ${{MEMSET_CLOUD_ROOT}}/scripts/update_terraform_deployment.sh  deploy ${{MEMSET_CLOUD_ROOT}} ${{RJM_WS_NAME}} ${{RJM_VERSION}}
+      - ssh -p ${{SSH_PORT}} -i ${HOME}/.ssh/id_rdocker -o StrictHostKeyChecking=no ${{RDOCKER_HOST}} ${{MEMSET_CLOUD_ROOT}}/scripts/execute_terraform.sh ${{MEMSET_CLOUD_ROOT}} ${{RJM_WS_NAME}}
+
+  approveCleanUpOldVersion:
+    type: pending-approval
+    title: Check prod version is working
+    description: Check prod version ${{RJM_VERSION}} before continuing pipeline and destorying old versions
+    timeout:
+      duration: 2
+      finalState: denied
+
+  cleanUpOldVersion:
+    image: codefresh/remote-docker
+    working_directory: ${{main_clone}}
+    commands:
+      - rdocker ${{RDOCKER_HOST}} docker run --rm -it --network main_net --volume=/var/run:/var/run --entrypoint docker_service_remove_non_live
+        ${{RJM_DOCKERWSCALLER_IMAGE}}
+        ${{RJM_WS_NAME}}
+        ${{RJM_VERSION}}
+        metcarob/
+    environment:
+      - SSH_KEY=${{SSH_KEY_COMMAS}}
+      - SSH_PORT=${{SSH_PORT}}
+      - SPLIT_CHAR=${{SPLIT_CHAR}}
+    when:
+      steps:
+      - name: approveCleanUpOldVersion
+        on:
+        - approved
+    retry:
+      maxAttempts: 2
+      delay: 3
+      exponentialFactor: 1

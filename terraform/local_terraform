@@ -1,0 +1,32 @@
+#!/bin/bash
+
+echo "Start of ${0} - Used to test terraform locally"
+
+## Example
+## ./local_terraform init
+## ./local_terraform apply -auto-approve
+
+
+WS_NAME="templateservicename"
+TF_STATE_BASE="./state"
+KONG_ADMIN_URI="http://kong:8001"
+
+if [[ ! -d ${TF_STATE_BASE}/${WS_NAME} ]]; then
+  mkdir -p ${TF_STATE_BASE}/${WS_NAME}
+fi
+
+EXTRAPARAM="-state=${TF_STATE_BASE}/${WS_NAME}/terraform.tfstate -var-file=./local_deployment_config.tfvars.json"
+if [[ E${1} == "Einit" ]]; then
+  EXTRAPARAM="-backend-config path=${TF_STATE_BASE}/${WS_NAME}/terraform.tfstate"
+fi
+
+echo "About to run terraform with params $@ ${EXTRAPARAM}"
+
+docker run --rm -it -v $(pwd):/curdir/ \
+  --workdir=/curdir \
+  --network=main_net \
+  -e TF_VAR_ws_name="${WS_NAME}" \
+  -e TF_VAR_kong_admin_uri="${KONG_ADMIN_URI}" \
+  hashicorp/terraform:0.14.4 $@ ${EXTRAPARAM}
+
+echo "End of ${0}"
