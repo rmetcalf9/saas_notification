@@ -43,18 +43,7 @@ RUN apt-get install ca-certificates && \
     pip3 install uwsgi && \
     wget --ca-directory=/etc/ssl/certs https://s3.amazonaws.com/rds-downloads/rds-combined-ca-bundle.pem -O /rds-combined-ca-bundle.pem
 
-#RUN apk add --no-cache bash python3 curl python3-dev build-base linux-headers pcre-dev libffi-dev openldap-dev libxml2 libxslt libxslt-dev libxml2-dev && \
-#    python3 -m ensurepip && \
-#    rm -r /usr/lib/python*/ensurepip && \
-#    pip3 install --upgrade pip setuptools && \
-#    rm -r /root/.cache && \
-#    pip3 install --upgrade pip && \
-#    mkdir ${APP_DIR} && \
-#    mkdir ${APIAPP_FRONTEND_FRONTEND} && \
-#    mkdir /var/log/uwsgi && \
-#    pip3 install uwsgi && \
-#    wget https://s3.amazonaws.com/rds-downloads/rds-combined-ca-bundle.pem -O /rds-combined-ca-bundle.pem
-
+# Removed do I still need?
 # lmxml build process always runs out of memory
 #RUN pip3 install lxml==4.5.2
 
