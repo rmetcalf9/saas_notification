@@ -1,11 +1,13 @@
-FROM nginx:1.16.0-alpine
+FROM python:3.8-buster
 
 #docker file for saas_notification microservice
+# Using python buster as base image to make better python images
 # I have built this as a single container microservice to ease versioning
 
-MAINTAINER Robert Metcalf
+#https://pythonspeed.com/articles/alpine-docker-python/
+#https://github.com/tiangolo/uwsgi-nginx-docker/blob/master/docker-images/python3.8.dockerfile
 
-##https://vladikk.com/2013/09/12/serving-flask-with-nginx-on-ubuntu/
+MAINTAINER Robert Metcalf
 
 ENV APP_DIR /app
 ##web dirs arealso configured in nginx conf
@@ -31,20 +33,30 @@ ENV APIAPP_MODE DOCKER
 
 EXPOSE 80
 
-RUN apk add --no-cache bash python3 curl python3-dev build-base linux-headers pcre-dev libffi-dev openldap-dev libxml2 libxslt libxslt-dev libxml2-dev && \
-    python3 -m ensurepip && \
-    rm -r /usr/lib/python*/ensurepip && \
-    pip3 install --upgrade pip setuptools && \
-    rm -r /root/.cache && \
-    pip3 install --upgrade pip && \
+COPY install-nginx-debian.sh /
+
+RUN apt-get install ca-certificates && \
+    bash /install-nginx-debian.sh && \
     mkdir ${APP_DIR} && \
     mkdir ${APIAPP_FRONTEND_FRONTEND} && \
     mkdir /var/log/uwsgi && \
     pip3 install uwsgi && \
-    wget https://s3.amazonaws.com/rds-downloads/rds-combined-ca-bundle.pem -O /rds-combined-ca-bundle.pem
+    wget --ca-directory=/etc/ssl/certs https://s3.amazonaws.com/rds-downloads/rds-combined-ca-bundle.pem -O /rds-combined-ca-bundle.pem
+
+#RUN apk add --no-cache bash python3 curl python3-dev build-base linux-headers pcre-dev libffi-dev openldap-dev libxml2 libxslt libxslt-dev libxml2-dev && \
+#    python3 -m ensurepip && \
+#    rm -r /usr/lib/python*/ensurepip && \
+#    pip3 install --upgrade pip setuptools && \
+#    rm -r /root/.cache && \
+#    pip3 install --upgrade pip && \
+#    mkdir ${APP_DIR} && \
+#    mkdir ${APIAPP_FRONTEND_FRONTEND} && \
+#    mkdir /var/log/uwsgi && \
+#    pip3 install uwsgi && \
+#    wget https://s3.amazonaws.com/rds-downloads/rds-combined-ca-bundle.pem -O /rds-combined-ca-bundle.pem
 
 # lmxml build process always runs out of memory
-RUN pip3 install lxml==4.5.2
+#RUN pip3 install lxml==4.5.2
 
 COPY ./services/src ${APP_DIR}
 RUN pip3 install -r ${APP_DIR}/requirements.txt
