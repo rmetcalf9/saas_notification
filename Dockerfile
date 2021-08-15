@@ -11,7 +11,7 @@ MAINTAINER Robert Metcalf
 
 ENV APP_DIR /app
 ##web dirs arealso configured in nginx conf
-ENV APIAPP_FRONTEND /frontend
+ENV APIAPP_FRONTEND _
 ENV APIAPP_FRONTEND_FRONTEND /frontend
 
 
