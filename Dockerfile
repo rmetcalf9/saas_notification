@@ -38,7 +38,6 @@ COPY install-nginx-debian.sh /
 RUN apt-get install ca-certificates && \
     bash /install-nginx-debian.sh && \
     mkdir ${APP_DIR} && \
-    mkdir ${APIAPP_FRONTEND_FRONTEND} && \
     mkdir /var/log/uwsgi && \
     pip3 install uwsgi && \
     wget --ca-directory=/etc/ssl/certs https://s3.amazonaws.com/rds-downloads/rds-combined-ca-bundle.pem -O /rds-combined-ca-bundle.pem
@@ -50,7 +49,6 @@ RUN apt-get install ca-certificates && \
 COPY ./services/src ${APP_DIR}
 RUN pip3 install -r ${APP_DIR}/requirements.txt
 
-COPY ./frontend/dist/pwa ${APIAPP_FRONTEND_FRONTEND}
 COPY ./VERSION /VERSION
 COPY ./services/run_app_docker.sh /run_app_docker.sh
 COPY ./nginx_default.conf /etc/nginx/conf.d/default.conf

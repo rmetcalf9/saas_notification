@@ -7,7 +7,6 @@ GITROOT=$(pwd)
 DOCKER_USERNAME=metcarob
 DOCKER_IMAGENAME=saas_notification
 VERSIONNUM=$(cat ./VERSION)
-QUASARBUILDIMAGE="metcarob/docker-build-quasar-app:0.0.28"
 
 #could be spa or pwa
 QUASARBUILDMODE=pwa
@@ -21,18 +20,6 @@ if [ ${RES} -eq 0 ]; then
     echo "Image exists and delete failed"
     exit 1
   fi
-fi
-
-docker run --rm --name docker_build_quasar_app --mount type=bind,source=${GITROOT}/frontend,target=/ext_volume ${QUASARBUILDIMAGE} -c "build_quasar_app /ext_volume ${QUASARBUILDMODE} \"local_build_${VERSIONNUM}\""
-RES=$?
-if [ ${RES} -ne 0 ]; then
-  exit 1
-fi
-
-if [ ! -d ${GITROOT}/frontend/dist/${QUASARBUILDMODE} ]; then
-  echo "ERROR - build command didn't create ${GITROOT}/frontend/dist/${QUASARBUILDMODE} directory"
-  cd ${GITROOT}
-  exit 1
 fi
 
 echo "Build docker container (VERSIONNUM=${VERSIONNUM})"
