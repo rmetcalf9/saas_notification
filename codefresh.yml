@@ -110,8 +110,8 @@ steps:
           -e APIAPP_FRONTENDURL=https://api.metcarob.com/saas_notification/v${{RJM_MAJOR_VERSION}}/public/web/frontend
           -e APIAPP_COMMON_ACCESSCONTROLALLOWORIGIN="https://api.metcarob.com"
           -e APIAPP_JWTSECRETFILE=/run/secrets/saas_jwtsecret
-          --secret saasnotification_mqclientconfig
-          -e APIAPP_MQCLIENTCONFIGFILE=/run/secrets/saasnotification_mqclientconfig
+          --secret saas_notification_mqclientconfig
+          -e APIAPP_MQCLIENTCONFIGFILE=/run/secrets/saas_notification_mqclientconfig
           metcarob/${RJM_WS_NAME}:${RJM_VERSION}
       environment:
         - SSH_KEY=${{SSH_KEY_COMMAS}}
