@@ -9,15 +9,17 @@ import json
 import logging
 import sys
 import APIs
+import mq_client_abstraction
 
 from object_store_abstraction import createObjectStoreInstance
 
 invalidConfigurationException = constants.customExceptionClass('Invalid Configuration')
 
-InvalidObjectStoreConfigInvalidJSONException = constants.customExceptionClass('APIAPP_OBJECTSTORECONFIG value is not valid JSON')
+InvalidMqClientConfigInvalidJSONException = constants.customExceptionClass('APIAPP_MQCLIENTCONFIG value is not valid JSON')
 
 class appObjClass(parAppObj):
   accessControlAllowOriginObj = None
+  mqClient = None
 
   def setupLogging(self):
     root = logging.getLogger()
@@ -31,6 +33,19 @@ class appObjClass(parAppObj):
 
   def init(self, env, serverStartTime, testingMode = False):
     ##self.setupLogging() Comment in when debugging
+
+    mqClientConfigJSON = readFromEnviroment(env, 'APIAPP_MQCLIENTCONFIG', '{}', None)
+    mqClientConfigDict = None
+    try:
+      if mqClientConfigJSON != '{}':
+        mqClientConfigDict = json.loads(mqClientConfigJSON)
+    except Exception as err:
+      print(err) # for the repr
+      print(str(err)) # for just the message
+      print(err.args) # the arguments that the exception has been called with.
+      raise(InvalidMqClientConfigInvalidJSONException)
+
+    self.mqClient = mq_client_abstraction.createMQClientInstance(configDict=mqClientConfigDict)
 
     super(appObjClass, self).init(env, serverStartTime, testingMode, serverinfoapiprefix='public/info')
     ##print("appOBj init")

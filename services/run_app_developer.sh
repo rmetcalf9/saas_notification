@@ -59,6 +59,9 @@ export APIAPP_APIACCESSSECURITY=[]
 export APIAPP_PORT=8098
 export APIAPP_COMMON_ACCESSCONTROLALLOWORIGIN="http://localhost:8080"
 
+export APIAPP_MQCLIENTCONFIG="{ \"Type\": \"Stomp\", \"ConnectionString\": \"stomp://127.0.0.1:61613\", \"Username\": \"saasNotification\", \"Password\": \"saasNotificationPass\", \"clientId\": \"saas_notification\" }"
+
+
 export APIAPP_VERSION=
 if [ -f ${APP_DIR}/VERSION ]; then
   APIAPP_VERSION=${0}-$(cat ${APP_DIR}/VERSION)

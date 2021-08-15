@@ -32,7 +32,7 @@ env = {
   'APIAPP_FRONTENDURL': 'http://frontenddummytestxxx',
   'APIAPP_APIACCESSSECURITY': '[]',
   'APIAPP_COMMON_ACCESSCONTROLALLOWORIGIN': httpOrigin + ', https://sillysite.com',
-  'APIAPP_OBJECTSTORECONFIG': '{}'
+  'APIAPP_MQCLIENTCONFIG': '{ \"Type\": \"Memory\" }'
 }
 
 
