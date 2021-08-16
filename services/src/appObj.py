@@ -10,16 +10,24 @@ import logging
 import sys
 import APIs
 import mq_client_abstraction
+from ThreadSafeMessageToProcess import ThreadSafeMessageToProcess
+import time
+import Config
+
 
 from object_store_abstraction import createObjectStoreInstance
 
 invalidConfigurationException = constants.customExceptionClass('Invalid Configuration')
 
 InvalidMqClientConfigInvalidJSONException = constants.customExceptionClass('APIAPP_MQCLIENTCONFIG value is not valid JSON')
+InvalidConfigInvalidJSONException = constants.customExceptionClass('APIAPP_CONFIG value is not valid JSON')
+
 
 class appObjClass(parAppObj):
   accessControlAllowOriginObj = None
   mqClient = None
+  msgToBeProcessed = None
+  config = None
 
   def setupLogging(self):
     root = logging.getLogger()
@@ -33,6 +41,7 @@ class appObjClass(parAppObj):
 
   def init(self, env, serverStartTime, testingMode = False):
     ##self.setupLogging() Comment in when debugging
+    self.msgToBeProcessed = ThreadSafeMessageToProcess()
 
     mqClientConfigJSON = readFromEnviroment(env, 'APIAPP_MQCLIENTCONFIG', '{}', None)
     mqClientConfigDict = None
@@ -46,6 +55,19 @@ class appObjClass(parAppObj):
       raise(InvalidMqClientConfigInvalidJSONException)
 
     self.mqClient = mq_client_abstraction.createMQClientInstance(configDict=mqClientConfigDict)
+
+    configJSON = readFromEnviroment(env, 'APIAPP_CONFIG', '{}', None)
+    configDict = None
+    try:
+      if configJSON != '{}':
+        configDict = json.loads(configJSON)
+    except Exception as err:
+      print(err) # for the repr
+      print(str(err)) # for just the message
+      print(err.args) # the arguments that the exception has been called with.
+      raise(InvalidConfigInvalidJSONException)
+
+    self.config = Config.Config(configDict=configDict)
 
     super(appObjClass, self).init(env, serverStartTime, testingMode, serverinfoapiprefix='public/info')
     ##print("appOBj init")
@@ -65,10 +87,53 @@ class appObjClass(parAppObj):
   #override exit gracefully to stop worker thread
   def exit_gracefully(self, signum, frame):
     self.stopThread()
+    self.mqClient.close(wait=True)
     super(appObjClass, self).exit_gracefully(signum, frame)
+    raise self.ServerTerminationError()
 
   def getDerivedServerInfoData(self):
     return {
     }
+
+  def LocalMessageProcessorFunctionCaller(self, destination, body):
+    try:
+      self.msgToBeProcessed.setMessageToProcess(destination=destination, body=body)
+    except Exception as err:
+      print("ERROR PROCESSING RECEIVED MESSAGE - " + str(err))
+      return
+    #sleep this thread until the main thread has completed processing
+    # this prevents us from taking another message before this one is complete
+    # required because scrapy will only run on main thread
+    while not self.msgToBeProcessed.readyForAnotherMessage():
+      ## print("Sleeping")
+      time.sleep(0.05)
+
+  def LocalMessageProcessorFunction(self, destination, body, outputFn=print):
+    if destination not in self.config.getDestinationsSubscribedTo():
+      # should never reach here
+      raise Exception("Not subscribed to " + destination)
+    outputFn("TODO Execute message ", destination, body)
+
+
+  def run(self, custom_request_handler=None):
+    if (self.isInitOnce == False):
+      raise Exception('Trying to run app without initing')
+
+    for x in self.config.getDestinationsSubscribedTo():
+      print("Subscribing to " + x + " durableSubscriptionName:" + self.config.getDestination(x)["durableSubscriptionName"])
+      self.mqClient.subscribeToDestination(destination=x,msgRecieveFunction=self.LocalMessageProcessorFunctionCaller,durableSubscriptionName=self.config.getDestination(x)["durableSubscriptionName"])
+
+    try:
+      body = None
+      while True:
+        self.mqClient.processLoopIteration()
+        (body, destination) = self.msgToBeProcessed.startProcessing()
+        if body is not None:
+          self.LocalMessageProcessorFunction(destination=destination, body=body)
+          self.msgToBeProcessed.processingComplete()
+        time.sleep(0.1)
+        pass
+    except self.ServerTerminationError:
+      pass
 
 appObj = appObjClass()
