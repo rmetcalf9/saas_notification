@@ -10,7 +10,7 @@ import time
 baseURL = "http://0.0.0.0:8097"
 
 queues = [
-  {"name": "/topic/saasNotificationTest", "tenant": "dev"}
+  {"name": "/queue/saasNotificationTest"}
 ]
 
 
@@ -19,11 +19,6 @@ print("Start of dev machine tester")
 mqClient = mq_client_abstraction.createMQClientInstance(configDict=json.loads(os.environ["APIAPP_MQCLIENTCONFIG"]))
 
 commandManager = Command.commandManager()
-
-uniqueTenants = {}
-for queue in queues:
-  uniqueTenants[queue["tenant"]] = queue["tenant"]
-uniqueTenantList = list(uniqueTenants.keys())
 
 apiClient = ApiClient(baseURL)
 
