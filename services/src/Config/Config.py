@@ -9,6 +9,35 @@ Config format:
 }
 '''
 
+'''
+From gitlab
+{
+  providerName: "VerifyEmail"
+  reciever: provider spercific string. E.g. Email address
+  senderOverrideString: 'ddd' OPTIONAL????
+  subject: subject
+  text: Text of email
+  html: html of email
+}
+
+
+tenantX: {
+  recieverOverrideString: {
+    AWSSESEmail: 'XXX'
+  },
+  providerConfig: {
+    ProviderName: 'VerifyEmail', #to match what is in message
+    ProviderType: 'AWSSESEmail',
+    recieverOverrideString: 'sss',
+    senderString: 'sss',
+    ProvierSpercific: { AWS Connection details etc.}
+  },
+  sourceToWatch: {
+    details of Message provider, credentials etc.
+  }
+}
+'''
+
 class Config:
   configDict = None
 
