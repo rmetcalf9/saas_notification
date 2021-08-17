@@ -3,6 +3,11 @@
 '''
 Config format:
 {
+  "tenantName": {**TENNANT**}
+}
+
+**TENNANT**
+{
   "destName": {
     "durableSubscriptionName": ""
   }
@@ -20,6 +25,11 @@ From gitlab
   html: html of email
 }
 
+
+Shall I go with tenants?
+I could just have different queue and provider subscrptions then I don't need tenenats at all
+It is safer to relate queues and providers on a tenenat so the same provider id can refer to different providers
+on different tenants 
 
 tenantX: {
   recieverOverrideString: {
@@ -39,9 +49,24 @@ tenantX: {
 '''
 
 class Config:
-  configDict = None
-
+  tenantConfigs = None
   def __init__(self, configDict):
+    self.tenantConfigs = []
+    for currentTenant in configDict.keys():
+      self.tenantConfigs.append(TenantConfig(configDict[currentTenant], currentTenant))
+
+    if len(self.tenantConfigs)==0:
+      raise Exception("Error in config 003 - 0 tenants found")
+
+  def getTenantList(self):
+    return self.tenantConfigs
+
+class TenantConfig:
+  configDict = None
+  tenantName = None
+
+  def __init__(self, configDict, tenantName):
+    self.tenantName = tenantName
     self.configDict = configDict
     if self.configDict is None:
       raise Exception("config is missing")
