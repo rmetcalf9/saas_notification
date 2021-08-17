@@ -13,6 +13,7 @@ import mq_client_abstraction
 from ThreadSafeMessageToProcess import ThreadSafeMessageToProcess
 import time
 import Config
+import traceback
 
 
 from object_store_abstraction import createObjectStoreInstance
@@ -112,8 +113,16 @@ class appObjClass(parAppObj):
     if destination not in tenantConfig.getDestinationsSubscribedTo():
       # should never reach here
       raise Exception("Not subscribed to " + destination)
-    outputFn("TODO Execute message ", destination, body)
-    outputFn(" ten:", tenantConfig.tenantName)
+
+    bodyDict = json.loads(body)
+
+    if "providerId" not in bodyDict:
+      raise Exception("Error received message has no providerId")
+    provider = tenantConfig.getProvider(bodyDict["providerId"])
+    if provider is None:
+      raise Exception("Error received message but no providerId exists with id " + bodyDict["providerId"])
+
+    provider.processMessage(destination=destination, bodyDict=bodyDict, tenantConfig=tenantConfig, outputFn=outputFn)
 
 
   def run(self, custom_request_handler=None):
@@ -133,7 +142,15 @@ class appObjClass(parAppObj):
         self.mqClient.processLoopIteration()
         (body, destination, tenantConfig) = self.msgToBeProcessed.startProcessing()
         if body is not None:
-          self.LocalMessageProcessorFunction(destination=destination, body=body, tenantConfig=tenantConfig)
+          try:
+            self.LocalMessageProcessorFunction(destination=destination, body=body, tenantConfig=tenantConfig)
+          except Exception as err:
+            print("***Exception in processing message - message is dequeued and ignored but app will still run***")
+            traceback.print_exc()
+            print(err)  # for the repr
+            print(str(err))  # for just the message
+            print(err.args)  # the arguments that the exception has been called with.
+            print("***END***")
           self.msgToBeProcessed.processingComplete()
         time.sleep(0.1)
         pass

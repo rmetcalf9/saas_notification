@@ -5,6 +5,9 @@ import json
 def nameGetFn(item):
   return item["name"]
 
+def itemDisplayFunctionJustItem(item):
+  return item
+
 def selectItemsFromList(list, includeAll, subjectText="Queue", itemDisplayFunction=nameGetFn):
   num = 0
   for curItem in list:
@@ -34,12 +37,26 @@ class CmdSendEvents(Base):
     if cancel:
       return
 
-    for curQueue in selectedQueues:
-      body = {
+    messagesToSend = {
+      "rubbishData": {
         "id": "123",
         "TODO": "TODO"
-      }
-      print("Sending", json.dumps(body))
-      context["mqClient"].sendStringMessage(destination=curQueue["name"],body=json.dumps(body))
-      print("Sent event ", curQueue["name"], body["id"])
+      },
+      "unregisteredProviderId": {
+        "providerId": "RANDOM"
+      },
+      "httpcall providerId Only": {
+        "providerId": "123"
+      },
+    }
+
+    selectedMessages, cancel = selectItemsFromList(list=list(messagesToSend.keys()), includeAll=True, itemDisplayFunction=itemDisplayFunctionJustItem)
+    if cancel:
+      return
+
+    for curMessage in selectedMessages:
+      for curQueue in selectedQueues:
+        print("Sending message")
+        context["mqClient"].sendStringMessage(destination=curQueue["name"],body=json.dumps(messagesToSend[curMessage]))
+        print("Sent event")
 

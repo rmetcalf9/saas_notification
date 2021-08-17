@@ -1,4 +1,4 @@
-
+import Providers
 
 '''
 Config format:
@@ -8,16 +8,26 @@ Config format:
 
 **TENNANT**
 {
-  "destName": {
-    "durableSubscriptionName": ""
-  }
+  "dests": [
+    "destName": {
+      "durableSubscriptionName": ""
+    }
+  ]
+  "providers": [ **PROVIDERS** ]
+}
+
+**PROVIDER**
+{
+  "id": "dd",
+  "type": "dd",
+  "config": {**DEPENDS ON TYPE SEE TYPE FILE**}
 }
 '''
 
 '''
 From gitlab
 {
-  providerName: "VerifyEmail"
+  providerId: "VerifyEmail"
   reciever: provider spercific string. E.g. Email address
   senderOverrideString: 'ddd' OPTIONAL????
   subject: subject
@@ -58,27 +68,54 @@ class Config:
     if len(self.tenantConfigs)==0:
       raise Exception("Error in config 003 - 0 tenants found")
 
+    knownQueues = {}
+    for x in self.tenantConfigs:
+      for q in x.getDestinationsSubscribedTo():
+        if q in knownQueues:
+          raise Exception("Error - same queue is subscribed more than once")
+
   def getTenantList(self):
     return self.tenantConfigs
 
 class TenantConfig:
-  configDict = None
+  dests = None
   tenantName = None
+  loadedProviders = None
 
   def __init__(self, configDict, tenantName):
     self.tenantName = tenantName
-    self.configDict = configDict
-    if self.configDict is None:
+    self.dests = {}
+    self.loadedProviders = {}
+    if configDict is None:
       raise Exception("config is missing")
-    for x in configDict.keys():
-      if not isinstance(configDict[x], dict):
-        raise Exception("Error in config 001 - " + x + " item not dict")
-      if "durableSubscriptionName" not in configDict[x]:
-        raise Exception("Error in config 002 - " + x + " durableSubscriptionName missing")
-      print(x)
+    expectedListKeys = ["providers", "dests"]
+    for edk in expectedListKeys:
+      if edk not in configDict:
+        raise Exception("Error in config 004 - No " + edk)
+      if not isinstance(configDict[edk], list):
+        raise Exception("Error in config 005 - " + edk + " must be a list")
+
+    for curDest in configDict["dests"]:
+      self.dests[curDest["name"]] = curDest
+    if len(self.dests.keys())==0:
+       raise Exception("Error in config 007 - Must be at least one dest")
+
+    for providerDict in configDict["providers"]:
+      provider = Providers.providerFactory(providerDict)
+      if provider.getId() in self.loadedProviders:
+        raise Exception("Error in config 008 - Mutiple providers in same tenant with same id")
+      self.loadedProviders[provider.getId()] = provider
+    if len(self.loadedProviders.keys())==0:
+      raise Exception("Error in config 006 - Must be at least one provider")
+
 
   def getDestinationsSubscribedTo(self):
-    return list(self.configDict.keys())
+    return list(self.dests.keys())
 
   def getDestination(self, destination):
-    return self.configDict[destination]
+    return self.dests[destination]
+
+  def getProvider(self, providerId):
+    if providerId not in self.loadedProviders:
+      return None
+    return self.loadedProviders[providerId]
