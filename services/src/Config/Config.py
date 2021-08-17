@@ -25,6 +25,7 @@ Config format:
 '''
 
 '''
+Message format:
 From gitlab
 {
   providerId: "VerifyEmail"
