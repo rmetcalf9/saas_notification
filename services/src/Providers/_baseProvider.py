@@ -17,25 +17,39 @@ class ProviderBaseClass:
     self.type = providerConfig["type"]
     self.recieverOverride = None
     if "receiverOverride" in providerConfig:
+      if not self._validateReciever(providerConfig["receiverOverride"]):
+        raise Exception("Invalid receiverOverride")
       self.recieverOverride = providerConfig["receiverOverride"]
     self.senderOverride = None
     if "senderOverride" in providerConfig:
+      if not self._validateSender(providerConfig["senderOverride"]):
+        raise Exception("Invalid senderOverride")
       self.senderOverride = providerConfig["senderOverride"]
 
   def getId(self):
     return self.id
 
+  def _validateReciever(self, reciever):
+    return True
+  def _validateSender(self, sender):
+    return True
+
   def processMessage(self, destination, bodyDict, tenantConfig, outputFn):
     receiver = None
     if self.recieverOverride is not None:
       receiver = self.recieverOverride
-    elif "reciever" in bodyDict:
-      receiver = bodyDict["reciever"]
+    elif "receiver" in bodyDict:
+      receiver = bodyDict["receiver"]
     sender = None
+    if not self._validateReciever(receiver):
+      raise Exception("Invalid Receiver")
+
     if self.senderOverride is not None:
       sender = self.senderOverride
-    elif "reciever" in bodyDict:
+    elif "receiver" in bodyDict:
       sender = bodyDict["sender"]
+    if not self._validateSender(sender):
+      raise Exception("Invalid Sender")
 
     self._processMessage(
       sender=sender,
