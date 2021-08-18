@@ -63,7 +63,8 @@ CMD ["/run_app_docker.sh"]
 # Regular checks. Docker won't send traffic to container until it is healthy
 #  and when it first starts it won't check the health until the interval so I can't have
 #  a higher value without increasing the startup time
-HEALTHCHECK --interval=30s --timeout=3s \
-  CMD /healthcheck.sh
+# No health check this container has no api
+#HEALTHCHECK --interval=30s --timeout=3s \
+#  CMD /healthcheck.sh
 
 ##to run see run_localbuild_container.sh

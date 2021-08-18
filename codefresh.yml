@@ -46,7 +46,6 @@ steps:
     commands:
       - apk add --no-cache libressl-dev libxml2 libxslt libxslt-dev libxml2-dev
       - pip3 install --no-cache-dir -r ./src/requirements.txt
-      - pip3 install --no-cache-dir -r ./testContainer/requirements.txt
       - nosetests --rednose ./test
 
   build_the_image:
@@ -55,13 +54,6 @@ steps:
     image_name: metcarob/${{RJM_WS_NAME}}
     tag: ${{RJM_VERSION}}
 
-  build_the_test_image:
-    working_directory: ${{main_clone}}/services/testContainer
-    type: build
-    image_name: metcarob/${{RJM_WS_NAME}}test
-    tag: develop
-    dockerfile: ./Dockerfile
-
   free_disk_space:
     description: Free up disk space
     image: alpine:latest
@@ -69,32 +61,6 @@ steps:
     commands:
       - rm -rf ./webapp/node_modules
       - rm -rf ./webapp/dist
-
-  container_level_tests:
-    type: composition
-    title: Container level tests
-    composition:
-      version: '2'
-      services:
-        container_under_test:
-          image: ${{build_the_image}}
-          environment:
-            - APIAPP_JWTSECRET="someDummy3245SecretForTesting"
-            - APIAPP_APIURL=http://container_under_test:80/api
-            - APIAPP_APIDOCSURL=http://container_under_test:80/apidocs
-            - APIAPP_FRONTENDURL=http://container_under_test:80/frontend
-            - APIAPP_DEFAULTMASTERTENANTJWTCOLLECTIONALLOWEDORIGINFIELD="http://localhost"
-            - APIAPP_COMMON_ACCESSCONTROLALLOWORIGIN="http://localhost"
-            - APIAPP_OBJECTSTORECONFIG="{\"Type\":\"Memory\"}"
-            - APIAPP_CONFIG="{\"testTenant\":{\"dests\":[{\"name\":\"/queue/saasNotificationTest\",\"durableSubscriptionName\":\"main\"}],\"providers\":[{\"id\":\"123\",\"type\":\"httpcall\",\"receiverOverride\":\"get:https://www.google.com\",\"config\":{}}]}}"
-    composition_candidates:
-      saas_user_management_systemtest:
-        image: ${{build_the_test_image}}
-        command: /run_tests_with_wait.sh
-        environment:
-          - TESTPARAM_EXPECTED_CONTAINER_VERSION=${{RJM_VERSION}}
-          - TESTPARAM_ENDPOINTURL="http://container_under_test"
-          - TESTPARAM_THROUGHKONG="False"
 
   #Deploy new container to my website swarm
   deploy_to_metcarob_swarm:
@@ -135,20 +101,6 @@ steps:
       - transferDirectory ${{RDOCKER_HOST}} ./terraform/ ${{MEMSET_CLOUD_ROOT}}/data_to_backup/terraform/executions/${{RJM_WS_NAME}}
       - ssh -p ${{SSH_PORT}} -i ${HOME}/.ssh/id_rdocker -o StrictHostKeyChecking=no ${{RDOCKER_HOST}} ${{MEMSET_CLOUD_ROOT}}/scripts/update_terraform_deployment.sh  setup_test ${{MEMSET_CLOUD_ROOT}} ${{RJM_WS_NAME}} ${{RJM_VERSION}}
       - ssh -p ${{SSH_PORT}} -i ${HOME}/.ssh/id_rdocker -o StrictHostKeyChecking=no ${{RDOCKER_HOST}} ${{MEMSET_CLOUD_ROOT}}/scripts/execute_terraform.sh ${{MEMSET_CLOUD_ROOT}} ${{RJM_WS_NAME}}
-
-  run_container_tests_against_test_endpoint:
-    image: ${{build_the_test_image}}
-    working_directory: ${{main_clone}}/server
-    commands:
-      - nosetests --rednose /test
-    environment:
-      - TESTPARAM_EXPECTED_CONTAINER_VERSION=${{RJM_VERSION}}
-      - TESTPARAM_ENDPOINTURL=https://api.metcarob.com/${{RJM_WS_NAME}}/test/v${{RJM_MAJOR_VERSION}}
-      - TESTPARAM_THROUGHKONG="True"
-    retry:
-      maxAttempts: 5
-      delay: 40
-      exponentialFactor: 1
 
   # rdockerinit directory required because it sets up .ssh/id_rdocker
   run_terraform_deploy:
