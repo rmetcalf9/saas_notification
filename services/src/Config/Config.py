@@ -107,7 +107,7 @@ class TenantConfig:
     for providerDict in configDict["providers"]:
       provider = Providers.providerFactory(providerDict)
       if provider.getId() in self.loadedProviders:
-        raise Exception("Error in config 008 - Mutiple providers in same tenant with same id")
+        raise Exception("Error in config 008 - Multiple providers in same tenant with same id")
       self.loadedProviders[provider.getId()] = provider
     if len(self.loadedProviders.keys())==0:
       raise Exception("Error in config 006 - Must be at least one provider")

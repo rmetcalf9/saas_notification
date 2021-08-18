@@ -126,15 +126,19 @@ class appObjClass(parAppObj):
 
 
   def run(self, custom_request_handler=None):
+    print("appObj Run Start")
     if (self.isInitOnce == False):
       raise Exception('Trying to run app without initing')
 
     for tenant in self.config.getTenantList():
+      print("Subscribing to destinations for " + tenant.tenantName)
       for x in tenant.getDestinationsSubscribedTo():
         def fn(destination, body, outputFn=print):
           self.LocalMessageProcessorFunctionCaller(destination=destination, body=body, tenantConfig=tenant)
         print("Subscribing to " + x + " durableSubscriptionName:" + tenant.getDestination(x)["durableSubscriptionName"])
         self.mqClient.subscribeToDestination(destination=x,msgRecieveFunction=fn,durableSubscriptionName=tenant.getDestination(x)["durableSubscriptionName"])
+
+    print(" end of subscriptions\n")
 
     try:
       body = None
