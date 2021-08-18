@@ -86,6 +86,7 @@ steps:
             - APIAPP_DEFAULTMASTERTENANTJWTCOLLECTIONALLOWEDORIGINFIELD="http://localhost"
             - APIAPP_COMMON_ACCESSCONTROLALLOWORIGIN="http://localhost"
             - APIAPP_OBJECTSTORECONFIG="{\"Type\":\"Memory\"}"
+            - APIAPP_CONFIG="{\"testTenant\":{\"dests\":[{\"name\":\"/queue/saasNotificationTest\",\"durableSubscriptionName\":\"main\"}],\"providers\":[{\"id\":\"123\",\"type\":\"httpcall\",\"receiverOverride\":\"get:https://www.google.com\",\"config\":{}}]}}"
     composition_candidates:
       saas_user_management_systemtest:
         image: ${{build_the_test_image}}
