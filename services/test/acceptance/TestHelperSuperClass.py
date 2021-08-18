@@ -23,6 +23,24 @@ httpOrigin = 'http://a.com'
 
 infoAPIPrefix = '/api/public/info'
 
+config = {
+  "testTenant": {
+    "dests": [
+      {"name": "/queue/saasNotificationTest", "durableSubscriptionName": "main"}
+    ],
+    "providers": [
+      {
+        "id": "123",
+        "type": "httpcall",
+        "receiverOverride": "get:https://www.google.com",
+        "config": {
+          "basicAuthCredentialFile": "./test_basic_auth_cred_file.json"
+        }
+      }
+    ]
+  }
+}
+
 env = {
   'APIAPP_MODE': 'DOCKER',
   'APIAPP_JWTSECRET': 'DOsaddsaCKER',
@@ -32,7 +50,8 @@ env = {
   'APIAPP_FRONTENDURL': 'http://frontenddummytestxxx',
   'APIAPP_APIACCESSSECURITY': '[]',
   'APIAPP_COMMON_ACCESSCONTROLALLOWORIGIN': httpOrigin + ', https://sillysite.com',
-  'APIAPP_MQCLIENTCONFIG': '{ \"Type\": \"Memory\" }'
+  'APIAPP_MQCLIENTCONFIG': '{ \"Type\": \"Memory\" }',
+  'APIAPP_CONFIG': json.dumps(config)
 }
 
 
