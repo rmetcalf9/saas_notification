@@ -8,3 +8,8 @@ object_store_abstraction==0.3.43
 mq-client-abstraction==0.0.53
 
 requests==2.20.1
+
+# Test dependancies
+nose==1.3.7
+rednose==1.2.3
+python_Testing_Utilities==0.1.7
