@@ -1,0 +1,17 @@
+{
+  "testTenant": {
+    "dests": [
+      {"name": "/queue/saasNotificationTest", "durableSubscriptionName": "main"}
+    ],
+    "providers": [
+      {
+        "id": "123",
+        "type": "httpcall",
+        "receiverOverride": "get:https://www.google.com",
+        "config": {
+          "basicAuthCredentialFile": "./test_basic_auth_cred_file.json"
+        }
+      }
+    ]
+  }
+}
