@@ -1,4 +1,5 @@
 import Providers
+import json
 
 '''
 Config format:
@@ -63,6 +64,8 @@ class Config:
   tenantConfigs = None
   def __init__(self, configDict):
     self.tenantConfigs = []
+    if isinstance(configDict, str):
+      configDict = json.loads(configDict)
     for currentTenant in configDict.keys():
       self.tenantConfigs.append(TenantConfig(configDict[currentTenant], currentTenant))
 
