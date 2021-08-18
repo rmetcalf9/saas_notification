@@ -38,7 +38,7 @@ class HttpCallProvider(ProviderBaseClass):
       return True # we allow non override
     (method, url) = self._getSupportedMethodAndUrl(reciever)
     if method is None:
-      raise Exception("HTTPCall - reciever should start with a supported method - " + reciever)
+      raise Exception("HTTPCall - receiver should start with a supported method - " + reciever)
 
     return True
 

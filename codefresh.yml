@@ -112,6 +112,9 @@ steps:
           -e APIAPP_JWTSECRETFILE=/run/secrets/saas_jwtsecret
           --secret saas_notification_mqclientconfig
           -e APIAPP_MQCLIENTCONFIGFILE=/run/secrets/saas_notification_mqclientconfig
+          --secret saas_notification_config
+          --secret monitor_check_temp_state_config
+          -e APIAPP_CONFIGFILE=/run/secrets/saas_notification_config
           metcarob/${RJM_WS_NAME}:${RJM_VERSION}
       environment:
         - SSH_KEY=${{SSH_KEY_COMMAS}}
