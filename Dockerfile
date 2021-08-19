@@ -10,7 +10,6 @@ FROM python:3.8-buster
 MAINTAINER Robert Metcalf
 
 ENV APP_DIR /app
-##web dirs arealso configured in nginx conf
 ENV APIAPP_FRONTEND _
 ENV APIAPP_FRONTEND_FRONTEND /frontend
 
@@ -31,15 +30,10 @@ ENV APIAPP_MODE DOCKER
 
 # APIAPP_VERSION is not definable here as it is read from the VERSION file inside the image
 
-EXPOSE 80
-
-COPY install-nginx-debian.sh /
+##EXPOSE 80 No webserver in this container
 
 RUN apt-get install ca-certificates && \
-    bash /install-nginx-debian.sh && \
     mkdir ${APP_DIR} && \
-    mkdir /var/log/uwsgi && \
-    pip3 install uwsgi && \
     wget --ca-directory=/etc/ssl/certs https://s3.amazonaws.com/rds-downloads/rds-combined-ca-bundle.pem -O /rds-combined-ca-bundle.pem
 
 # Removed do I still need?
@@ -51,8 +45,6 @@ RUN pip3 install -r ${APP_DIR}/requirements.txt
 
 COPY ./VERSION /VERSION
 COPY ./services/run_app_docker.sh /run_app_docker.sh
-COPY ./nginx_default.conf /etc/nginx/conf.d/default.conf
-COPY ./uwsgi.ini /uwsgi.ini
 COPY ./healthcheck.sh /healthcheck.sh
 
 STOPSIGNAL SIGTERM
