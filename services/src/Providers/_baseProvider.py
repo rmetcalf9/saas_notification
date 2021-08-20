@@ -53,14 +53,17 @@ class ProviderBaseClass:
     def readString(bodyDict, key):
       if key not in bodyDict:
         return None
-      if not isInstance(bodyDict[key], str):
+      if not isinstance(bodyDict[key], str):
         raise Exception(key + " of message should be string")
       if bodyDict == "":
         return None # empty strings changed to none
       return bodyDict[key]
 
     subject = readString(bodyDict, "subject")
-    body = readString(bodyDict, "body")
+
+    body = None
+    if "body" in bodyDict:
+      body = bodyDict["body"]
 
     self._processMessage(
       sender=sender,
