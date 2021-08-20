@@ -84,6 +84,9 @@ class Config:
   def getTenantList(self):
     return self.tenantConfigs
 
+  def getTenantForDestination(self, destination):
+    return self.destinationConfigMap[destination]
+
 class TenantConfig:
   dests = None
   tenantName = None
