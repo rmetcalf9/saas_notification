@@ -112,7 +112,8 @@ class appObjClass(parAppObj):
   def LocalMessageProcessorFunction(self, destination, body, tenantConfig, outputFn=print):
     if destination not in tenantConfig.getDestinationsSubscribedTo():
       # should never reach here
-      raise Exception("Not subscribed to " + destination)
+      print("Config subs" + str(tenantConfig.getDestinationsSubscribedTo()))
+      raise Exception(tenantConfig.tenantName + " has no subscriptions for " + destination + " ignoring message")
 
     bodyDict = json.loads(body)
 
@@ -136,7 +137,11 @@ class appObjClass(parAppObj):
         def fn(destination, body, outputFn=print):
           self.LocalMessageProcessorFunctionCaller(destination=destination, body=body, tenantConfig=tenant)
         print("Subscribing to " + x + " durableSubscriptionName:" + tenant.getDestination(x)["durableSubscriptionName"])
-        self.mqClient.subscribeToDestination(destination=x,msgRecieveFunction=fn,durableSubscriptionName=tenant.getDestination(x)["durableSubscriptionName"])
+        self.mqClient.subscribeToDestination(
+          destination=x,
+          msgRecieveFunction=fn,
+          durableSubscriptionName=tenant.getDestination(x)["durableSubscriptionName"]
+        )
 
     print(" end of subscriptions\n")
 
