@@ -5,7 +5,6 @@ class ThreadSafeMessageToProcess():
   inProgress=None
   destination=None
   body=None
-  tenantConfig=None
   waitingToProcess=None
 
   def __init__(self):
@@ -14,7 +13,6 @@ class ThreadSafeMessageToProcess():
     self.inProgress = False
     self.destination = None
     self.body = None
-    self.tenantConfig = None
 
   def readyForAnotherMessage(self):
     retVal = True
@@ -26,7 +24,7 @@ class ThreadSafeMessageToProcess():
     self.lock.release()
     return retVal
 
-  def setMessageToProcess(self, destination, body, tenantConfig):
+  def setMessageToProcess(self, destination, body):
     self.lock.acquire(blocking=True, timeout=-1)
     try:
       if self.inProgress:
@@ -37,7 +35,6 @@ class ThreadSafeMessageToProcess():
         raise Exception("ERROR MESSAGE destination not taken can't set (Destination is None)")
       self.destination = destination
       self.body = body
-      self.tenantConfig = tenantConfig
       self.waitingToProcess = True
     finally:
       self.lock.release()
@@ -48,10 +45,10 @@ class ThreadSafeMessageToProcess():
       raise Exception("ERROR MESSAGE already in progress can't start")
     if self.body is None:
       self.lock.release()
-      return None, None, None
+      return None, None
     if self.destination is None:
       raise Exception("ERROR MESSAGE no destination can't start")
-    retVal = (self.body, self.destination, self.tenantConfig)
+    retVal = (self.body, self.destination)
     self.inProgress = True
     self.waitingToProcess = False
     self.lock.release()

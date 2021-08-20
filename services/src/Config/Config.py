@@ -62,6 +62,7 @@ tenantX: {
 
 class Config:
   tenantConfigs = None
+  destinationConfigMap = None
   def __init__(self, configDict):
     self.tenantConfigs = []
     if isinstance(configDict, str):
@@ -72,11 +73,13 @@ class Config:
     if len(self.tenantConfigs)==0:
       raise Exception("Error in config 003 - 0 tenants found")
 
-    knownQueues = {}
-    for x in self.tenantConfigs:
-      for q in x.getDestinationsSubscribedTo():
-        if q in knownQueues:
+    self.destinationConfigMap = {}
+    for curTenantConfig in self.tenantConfigs:
+      for q in curTenantConfig.getDestinationsSubscribedTo():
+        if q in self.destinationConfigMap:
           raise Exception("Error - same queue is subscribed more than once")
+        else:
+          self.destinationConfigMap[q] = curTenantConfig
 
   def getTenantList(self):
     return self.tenantConfigs

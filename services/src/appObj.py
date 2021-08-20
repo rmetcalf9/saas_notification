@@ -96,9 +96,9 @@ class appObjClass(parAppObj):
     return {
     }
 
-  def LocalMessageProcessorFunctionCaller(self, destination, body, tenantConfig):
+  def LocalMessageProcessorFunctionCaller(self, destination, body):
     try:
-      self.msgToBeProcessed.setMessageToProcess(destination=destination, body=body, tenantConfig=tenantConfig)
+      self.msgToBeProcessed.setMessageToProcess(destination=destination, body=body)
     except Exception as err:
       print("ERROR PROCESSING RECEIVED MESSAGE - " + str(err))
       return
@@ -109,11 +109,10 @@ class appObjClass(parAppObj):
       ## print("Sleeping")
       time.sleep(0.05)
 
-  def LocalMessageProcessorFunction(self, destination, body, tenantConfig, outputFn=print):
-    if destination not in tenantConfig.getDestinationsSubscribedTo():
-      # should never reach here
-      print("Config subs" + str(tenantConfig.getDestinationsSubscribedTo()))
-      raise Exception(tenantConfig.tenantName + " has no subscriptions for " + destination + " ignoring message")
+  def LocalMessageProcessorFunction(self, destination, body, outputFn=print):
+    tenantConfig = self.config.getTenantForDestination(destination)
+    if tenantConfig is None:
+      raise Exception("No tenantConfig found for destination " + str(destination))
 
     bodyDict = json.loads(body)
 
@@ -134,12 +133,10 @@ class appObjClass(parAppObj):
     for tenant in self.config.getTenantList():
       print("Subscribing to destinations for " + tenant.tenantName)
       for x in tenant.getDestinationsSubscribedTo():
-        def fn(destination, body, outputFn=print):
-          self.LocalMessageProcessorFunctionCaller(destination=destination, body=body, tenantConfig=tenant)
         print("Subscribing to " + x + " durableSubscriptionName:" + tenant.getDestination(x)["durableSubscriptionName"])
         self.mqClient.subscribeToDestination(
           destination=x,
-          msgRecieveFunction=fn,
+          msgRecieveFunction=self.LocalMessageProcessorFunctionCaller,
           durableSubscriptionName=tenant.getDestination(x)["durableSubscriptionName"]
         )
 
@@ -149,10 +146,10 @@ class appObjClass(parAppObj):
       body = None
       while True:
         self.mqClient.processLoopIteration()
-        (body, destination, tenantConfig) = self.msgToBeProcessed.startProcessing()
+        (body, destination) = self.msgToBeProcessed.startProcessing()
         if body is not None:
           try:
-            self.LocalMessageProcessorFunction(destination=destination, body=body, tenantConfig=tenantConfig)
+            self.LocalMessageProcessorFunction(destination=destination, body=body)
           except Exception as err:
             print("***Exception in processing message - message is dequeued and ignored but app will still run***")
             traceback.print_exc()
