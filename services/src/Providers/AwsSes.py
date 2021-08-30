@@ -72,6 +72,8 @@ class AwsSesProvider(ProviderBaseClass):
         },
         Source=sender,
       )
+      print("AwsSES - Message sent")
+
     except ClientError as e:
       print("AwsSES Error response:", e.response['Error']['Message'])
       raise e
