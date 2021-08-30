@@ -20,11 +20,11 @@ class AwsSesProvider(ProviderBaseClass):
     # aws_secret_access_key
     # region_name
 
-    if "aws_access_key_id" in config:
+    if "aws_access_key_id" not in config:
       raise Exception("AwsSes - aws_access_key_id missing")
-    if "aws_secret_access_key" in config:
+    if "aws_secret_access_key" not in config:
       raise Exception("AwsSes - aws_secret_access_key missing")
-    if "region_name" in config:
+    if "region_name" not in config:
       raise Exception("AwsSes - region_name missing")
     self.region_name = region_name
 
