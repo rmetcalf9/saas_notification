@@ -48,8 +48,8 @@ class AwsSesProvider(ProviderBaseClass):
     client = self.awsSession.client('ses', region_name=self.region_name)
 
     try:
-      print("About to try, sender:", sender)
-      print("receiver:", receiver)
+      #print("About to try, sender:", sender)
+      #print("receiver:", receiver)
 
       response = client.send_email(
         Destination={
