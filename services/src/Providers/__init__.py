@@ -1,4 +1,5 @@
 from .HttpCall import HttpCallProvider
+from .AwsSes import AwsSesProvider
 
 def providerFactory(providerConfig):
   if "id" not in providerConfig:
@@ -16,5 +17,7 @@ def providerFactory(providerConfig):
 
   if providerConfig["type"] == "httpcall":
     return HttpCallProvider(providerConfig)
+  elif providerConfig["type"] == "awsses":
+    return AwsSesProvider(providerConfig)
   else:
     raise Exception("Error unknown provider type " + providerConfig["type"])

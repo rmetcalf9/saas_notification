@@ -6,6 +6,7 @@ baseapp_for_restapi_backend_with_swagger==0.5.22
 pyjwt==1.7.1
 object_store_abstraction==0.3.43
 mq-client-abstraction==0.0.53
+boto3==1.18.30
 
 requests==2.20.1
 
