@@ -72,6 +72,7 @@ class AwsSesProvider(ProviderBaseClass):
         },
         Source=sender,
       )
+      print(" TTTT", sender)
       print("AwsSES - Message sent")
 
     except ClientError as e:
