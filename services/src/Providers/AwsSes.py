@@ -26,13 +26,13 @@ class AwsSesProvider(ProviderBaseClass):
       raise Exception("AwsSes - aws_secret_access_key missing")
     if "region_name" not in config:
       raise Exception("AwsSes - region_name missing")
-    self.region_name = region_name
+    self.region_name = config["region_name"]
 
     self.awsSession = AWSSession(
       aws_access_key_id=config["aws_access_key_id"],
       aws_secret_access_key=config["aws_secret_access_key"],
       aws_session_token=None,
-      region_name=config["region_name"],
+      region_name=self.region_name,
       botocore_session=None,
       profile_name=None
     )
