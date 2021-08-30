@@ -48,6 +48,9 @@ class AwsSesProvider(ProviderBaseClass):
     client = self.awsSession.client('ses', region_name=self.region_name)
 
     try:
+      print("About to try, sender:", sender)
+      print("receiver:", receiver)
+
       response = client.send_email(
         Destination={
           'ToAddresses': [
@@ -72,7 +75,6 @@ class AwsSesProvider(ProviderBaseClass):
         },
         Source=sender,
       )
-      print(" TTTT", sender)
       print("AwsSES - Message sent")
 
     except ClientError as e:
