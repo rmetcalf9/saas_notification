@@ -26,6 +26,7 @@ steps:
       - export RJM_UNITTESTAPICONTIANER_IMAGE="metcarob/python_unittest_api_container:0.0.9"
       - export RJM_DOCKER_KONG_API_URL="http://tasks.kong:8001"
       - export MEMSET_CLOUD_ROOT=/memset_cloud
+      - export RJM_PYTHON_TEST_IMAGE="python:3.8.13-slim"
       - cf_export RJM_VERSION=${RJM_VERSION}
       - cf_export RJM_VERSION_UNDERSCORE=${RJM_VERSION_UNDERSCORE}
       - cf_export RJM_MAJOR_VERSION=${RJM_MAJOR_VERSION}
@@ -37,16 +38,16 @@ steps:
       - cf_export RJM_UNITTESTAPICONTIANER_IMAGE=${RJM_UNITTESTAPICONTIANER_IMAGE}
       - cf_export RJM_DOCKER_KONG_API_URL=${RJM_DOCKER_KONG_API_URL}
       - cf_export MEMSET_CLOUD_ROOT=${MEMSET_CLOUD_ROOT}
+      - cf_export RJM_PYTHON_TEST_IMAGE="${RJM_PYTHON_TEST_IMAGE}"
 
   # These are the application unit tests
   unit_test:
     description: Make sure all the unit tests pass
-    image: ${{RJM_DOCKERWSCALLER_IMAGE}}
+    image: ${{RJM_PYTHON_TEST_IMAGE}}
     working_directory: ${{main_clone}}/services
     commands:
-      - apk add --no-cache libressl-dev libxml2 libxslt libxslt-dev libxml2-dev
       - pip3 install --no-cache-dir -r ./src/requirements.txt
-      - nosetests --rednose ./test
+      - python3 -m pytest ./test
 
   build_the_image:
     working_directory: ${{main_clone}}
