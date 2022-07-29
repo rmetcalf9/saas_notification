@@ -1,9 +1,16 @@
 version: '1.0'
+stages:
+  - prepare
+  - build
+  - deploy
+  - postdeploy
+
 steps:
 
   #This file describes the deployment process for saas_notification
 
   main_clone:
+    stage: prepare
     title: Cloning main repository...
     type: git-clone
     repo: '${{CF_REPO_OWNER}}/${{CF_REPO_NAME}}'
@@ -11,6 +18,7 @@ steps:
     git: github
 
   setup_variables:
+    stage: prepare
     description: Sets variables for future steps
     image: alpine:latest
     working_directory: ${{main_clone}}
@@ -42,6 +50,7 @@ steps:
 
   # These are the application unit tests
   unit_test:
+    stage: deploy
     description: Make sure all the unit tests pass
     image: ${{RJM_PYTHON_TEST_IMAGE}}
     working_directory: ${{main_clone}}/services
@@ -50,12 +59,14 @@ steps:
       - python3 -m pytest ./test
 
   build_the_image:
+    stage: deploy
     working_directory: ${{main_clone}}
     type: build
     image_name: metcarob/${{RJM_WS_NAME}}
     tag: ${{RJM_VERSION}}
 
   free_disk_space:
+    stage: deploy
     description: Free up disk space
     image: alpine:latest
     working_directory: ${{main_clone}}
@@ -65,6 +76,7 @@ steps:
 
   #Deploy new container to my website swarm
   deploy_to_metcarob_swarm:
+      stage: deploy
       image: codefresh/remote-docker
       working_directory: ${{main_clone}}
       commands:
@@ -90,6 +102,7 @@ steps:
         - SPLIT_CHAR=${{SPLIT_CHAR}}
 
   run_terraform_setuptest:
+    stage: deploy
     title: "Run terraform to setup test endpoints on memset..."
     description: Compile the frontend quasar application
     image: ${{RJM_DOCKERWSCALLER_IMAGE}}
@@ -105,6 +118,7 @@ steps:
 
   # rdockerinit directory required because it sets up .ssh/id_rdocker
   run_terraform_deploy:
+    stage: deploy
     title: "Run terraform to deploy on memset..."
     description: Compile the frontend quasar application
     image: ${{RJM_DOCKERWSCALLER_IMAGE}}
@@ -119,6 +133,7 @@ steps:
       - ssh -p ${{SSH_PORT}} -i ${HOME}/.ssh/id_rdocker -o StrictHostKeyChecking=no ${{RDOCKER_HOST}} ${{MEMSET_CLOUD_ROOT}}/scripts/execute_terraform.sh ${{MEMSET_CLOUD_ROOT}} ${{RJM_WS_NAME}}
 
   approveCleanUpOldVersion:
+    stage: postdeploy
     type: pending-approval
     title: Check prod version is working
     description: Check prod version ${{RJM_VERSION}} before continuing pipeline and destorying old versions
@@ -127,6 +142,7 @@ steps:
       finalState: denied
 
   cleanUpOldVersion:
+    stage: postdeploy
     image: codefresh/remote-docker
     working_directory: ${{main_clone}}
     commands:
