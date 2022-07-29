@@ -50,7 +50,7 @@ steps:
 
   # These are the application unit tests
   unit_test:
-    stage: deploy
+    stage: build
     description: Make sure all the unit tests pass
     image: ${{RJM_PYTHON_TEST_IMAGE}}
     working_directory: ${{main_clone}}/services
@@ -59,14 +59,14 @@ steps:
       - python3 -m pytest ./test
 
   build_the_image:
-    stage: deploy
+    stage: build
     working_directory: ${{main_clone}}
     type: build
     image_name: metcarob/${{RJM_WS_NAME}}
     tag: ${{RJM_VERSION}}
 
   free_disk_space:
-    stage: deploy
+    stage: build
     description: Free up disk space
     image: alpine:latest
     working_directory: ${{main_clone}}
