@@ -4,7 +4,6 @@ import datetime
 from appObj import appObj
 import json
 import constants
-import TestingHelper
 from unittest.mock import patch
 import copy
 import uuid
